@@ -11,6 +11,7 @@ const shorturl = async function (req, res) {
     if (typeof longUrl !== "string") {
         return res.status(400).send({ status: false, message: "longUrl must be in String" })
     }
+    // console.log(validURL.isUri(longUrl));
     if (!validURL.isUri(longUrl)) {
         return res.status(400).send({ status: false, message: "Please provide a valid URL" })
     }
@@ -33,7 +34,7 @@ const shorturl = async function (req, res) {
 }
 
 const geturl = async function (req, res) {
-    console.log(typeof req.params.urlCode)
+    // console.log(typeof req.params.urlCode)
     if (!shortId.isValid(req.params.urlCode)) {
         return res.status(400).send({ status: false, message: "Please provide valid urlCode" })
     }
