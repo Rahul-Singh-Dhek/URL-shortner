@@ -8,25 +8,6 @@ const urlModel = require('../models/urlModel')
 const shorturl = async function (req, res) {
 
     let longUrl = req.body.longUrl
-<<<<<<< HEAD
-    if (typeof longUrl!=="string")
-        {
-        return res.status(400).send({status:false,message:"longurl must be string"})
-        }
-    if (!validURL.isUri(longUrl))
-
-        {
-        return res.status(400).send({status:false,message:"please provide a valid url"})
-        }
-    
-    console.log(validURL.isUri(longUrl))
-
-
-
-    if (!validURL.isUri(longUrl)) 
-    {
-        return res.send({ msg: "Not a valid URL" })
-=======
     if (typeof longUrl !== "string") {
         return res.status(400).send({ status: false, message: "longUrl must be in String" })
     }
@@ -36,7 +17,6 @@ const shorturl = async function (req, res) {
     let url = await urlModel.findOne({ longUrl: longUrl }).select({ _id: 0, __v: 0 })
     if (url) {
         return res.status(200).send({ status: true, data: url })
->>>>>>> 437b2e363b488f9853d6a52c78cd1434fb8c2c25
     }
 
     let urlCode = shortId.generate();
