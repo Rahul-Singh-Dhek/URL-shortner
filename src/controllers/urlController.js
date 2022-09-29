@@ -8,8 +8,22 @@ const urlModel=require('../models/urlModel')
 const shorturl = async function (req, res) {
 
     let longUrl = req.body.longUrl
+    if (typeof longUrl!=="string")
+        {
+        return res.status(400).send({status:false,message:"longurl must be string"})
+        }
+    if (!validURL.isUri(longUrl))
+
+        {
+        return res.status(400).send({status:false,message:"please provide a valid url"})
+        }
+    
     console.log(validURL.isUri(longUrl))
-    if (!validURL.isUri(longUrl)) {
+
+
+
+    if (!validURL.isUri(longUrl)) 
+    {
         return res.send({ msg: "Not a valid URL" })
     }
 
