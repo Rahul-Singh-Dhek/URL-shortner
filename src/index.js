@@ -5,13 +5,18 @@ const app = express();
 
 app.use(express.json());
 
-mongoose.connect( "mongodb+srv://RahulSinghDhek:18248518@cluster0.dxzlfnc.mongodb.net/group2Database?retryWrites=true&w=majority",
-    {
-      useNewUrlParser: true,
+mongoose.connect("mongodb+srv://RahulSinghDhek:18248518@cluster0.dxzlfnc.mongodb.net/group2Database?retryWrites=true&w=majority",
+  {
+    useNewUrlParser: true,
+  },
+  function (err) {
+    if (err) {
+      console.log(err)
+    } else {
+      console.log("MongoDB is Connected");
     }
-  )
-  .then(() => console.log("MongoDb is connected"))
-  .catch((err) => console.log(err));
+  }
+)
 
 app.use("/", route);
 

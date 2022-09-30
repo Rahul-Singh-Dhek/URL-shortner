@@ -6,8 +6,8 @@ router.post("/url/shorten", urlcontroller.shorturl);
 
 router.get("/:urlCode", urlcontroller.geturl);
 
-router.all("/", function (req, res) {
-  return res.send({ status: false, message: "Please provide urlCode" });
+router.all("/*", function (req, res) {
+  return res.send({ status: false, message: "no route found" });
 });
 
 module.exports = router;

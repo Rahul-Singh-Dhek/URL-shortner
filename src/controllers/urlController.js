@@ -1,41 +1,60 @@
 const mongoose = require('mongoose')
 const shortId = require('shortid')
-const validURL = require('valid-url')
+// const validURL = require('valid-url')
 const urlModel = require('../models/urlModel')
 // console.log(shortId)
 
 
 const shorturl = async function (req, res) {
+    try {
 
-    let longUrl = req.body.longUrl
-    if (typeof longUrl !== "string") {
-        return res.status(400).send({ status: false, message: "longUrl must be in String" })
-    }
-    // console.log(validURL.isUri(longUrl));
-    if (!validURL.isUri(longUrl)) {
-        return res.status(400).send({ status: false, message: "Please provide a valid URL" })
-    }
-    let url = await urlModel.findOne({ longUrl: longUrl }).select({ _id: 0, __v: 0 })
-    if (url) {
-        return res.status(200).send({ status: true, data: url })
-    }
-
-    let urlCode = shortId.generate();
-    let shortUrl = "http://localhost:3000/" + urlCode;
-    let savedData = await urlModel.create({ urlCode: urlCode, longUrl: longUrl, shortUrl: shortUrl })
-    return res.status(201).send({
-        status: true, data: {
-            urlCode: savedData.urlCode,
-            longUrl: savedData.longUrl,
-            shortUrl: savedData.shortUrl
+        let longUrl = req.body.longUrl
+        if (!longUrl) {
+            return res.status(400).send({ status: false, message: "Please provide longUrl" })
         }
-    })
+        if (typeof longUrl !== "string") {
+            return res.status(400).send({ status: false, message: "longUrl must be in String" })
+        }
+        longUrl = longUrl.trim().toLowerCase()
 
+        let gau = longUrl.startsWith("http://") || longUrl.startsWith("https://") || longUrl.startsWith("ftp://")
+        // let regForUrl = /(:?^((https|http|HTTP|HTTPS){1}:\/\/)(([w]{3})[\.]{1})?([a-zA-Z0-9]{1,}[\.])[\w]((\/){1}([\w@? ^=%&amp;~+#-_.]+)))$/
+        if (!gau) {
+            return res.status(400).send({ status: false, message: "Please provide valid LongUrl" })
+        }
+
+        // if (regForUrl.test(longUrl)) {
+        //     return res.status(400).send({ status: false, message: "Rgex:Please provide a valid URL" })
+        // }
+
+        // if (!validURL.isUri(longUrl)) {
+        //     return res.status(400).send({ status: false, message: "Please provide a valid URL" })
+        // }
+        let url = await urlModel.findOne({ longUrl: longUrl }).select({ _id: 0, __v: 0 })
+        if (url) {
+            return res.status(200).send({ status: true, message: "ShortUrl is already created for this URL", data: url })
+        }
+
+        let urlCode = shortId.generate();
+        let baseUrl = "http://localhost:3000/"
+        let shortUrl = baseUrl + urlCode;
+        let savedData = await urlModel.create({ urlCode: urlCode, longUrl: longUrl, shortUrl: shortUrl })
+        return res.status(201).send({
+            status: true, message: "ShortUrl Generated Successfully", data: {
+                urlCode: savedData.urlCode,
+                longUrl: savedData.longUrl,
+                shortUrl: savedData.shortUrl
+            }
+        })
+    }
+    catch (err) {
+        return res.status(200).send({ status: true, message: "ShortUrl is already created for this URL", data: url })
+    }
 }
 
 const geturl = async function (req, res) {
     // console.log(typeof req.params.urlCode)
-    if (!shortId.isValid(req.params.urlCode)) {
+    if (!shortId.isValid(req.params.urlCode.trim())) {
         return res.status(400).send({ status: false, message: "Please provide valid urlCode" })
     }
     const url = await urlModel.findOne({ urlCode: req.params.urlCode })

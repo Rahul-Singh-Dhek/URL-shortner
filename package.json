@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start":"npx nodemon src/index.js"
+    "start": "npx nodemon src/index.js"
   },
   "repository": {
     "type": "git",
@@ -22,8 +22,6 @@
     "mongoose": "^6.6.2",
     "nodemon": "^2.0.20",
     "shortid": "^2.2.16",
-    "url": "^0.11.0",
-    "valid": "^0.1.1",
     "valid-url": "^1.0.9"
   }
 }
