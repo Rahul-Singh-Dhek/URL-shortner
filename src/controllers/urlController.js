@@ -42,6 +42,7 @@ const shorturl = async function (req, res) {
         }
         //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         let catchedUrldata = await GET_ASYNC(`${longUrl}`)
+        // console.log(catchedUrldata)
         if (catchedUrldata) {
             return res.status(200).send({ status: true, message: "ShortUrl is already created for this URL(REDIS)", data: JSON.parse(catchedUrldata) })
         }
@@ -54,34 +55,35 @@ const shorturl = async function (req, res) {
             //Redis consider only string
             return res.status(200).send({ status: true, message: "ShortUrl is already created for this URL", data: url })
         }
-//------------------------------------------------------->Axios--------------------------------------------------->
+        //------------------------------------------------------->Axios--------------------------------------------------->
         let obj = {
             method: "get",
             url: longUrl
         }
-//------------------------------------------------------->MY way of Axios--------------------------------------------------->
+        //------------------------------------------------------->MY way of Axios--------------------------------------------------->
         // let urlnotFound = false;
         // await axios(obj).catch((err) => { urlnotFound = true });
         // if (urlnotFound) {
         //     return res.status(400).send({ status: false, message: "Please provide valid LongUrl(RDOP)" })
         // }
-//------------------------------------------------------->Other way of Axios--------------------------------------------------->
-        let urlFound=false;
+        //------------------------------------------------------->Other way of Axios--------------------------------------------------->
+        let urlFound = false;
         await axios(obj)
             .then((res) => {
                 if (res.status == 201 || res.status == 200) urlFound = true;
             })
             .catch((err) => { });
-            if (!urlFound) {
-                return res.status(400).send({ status: false, message: "Please provide valid LongUrl(RDOP)" })
-            }
-//------------------------------------------------------->Axios Over--------------------------------------------------->
+        if (!urlFound) {
+            return res.status(400).send({ status: false, message: "Please provide valid LongUrl(RDOP)" })
+        }
+        //------------------------------------------------------->Axios Over--------------------------------------------------->
 
         let urlCode = shortId.generate();
         let baseUrl = "http://localhost:3000/"
         let shortUrl = baseUrl + urlCode;
 
         let savedData = await urlModel.create({ urlCode: urlCode, longUrl: longUrl, shortUrl: shortUrl })
+        await SET_ASYNC(`${savedData.longUrl}`, JSON.stringify(savedData), 'EX', 05)//stringify converts objects into string
 
         return res.status(201).send({
             status: true, message: "ShortUrl Generated Successfully", data: {
@@ -97,28 +99,32 @@ const shorturl = async function (req, res) {
 }
 
 const geturl = async function (req, res) {
-    if (!shortId.isValid(req.params.urlCode.trim())) {
-        return res.status(400).send({ status: false, message: "Please provide valid urlCode" })
-    }
-    //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    let catchedUrldata = await GET_ASYNC(`${req.params.urlCode.trim()}`)
-    // console.log(catchedUrldata)
-    if (catchedUrldata) {
-        console.log("I am in")
-        return res.status(302).redirect(JSON.parse(catchedUrldata))
-    }
-    //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    try {
+        if (!shortId.isValid(req.params.urlCode.trim())) {
+            return res.status(400).send({ status: false, message: "Please provide valid urlCode" })
+        }
+        //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        let catchedUrldata = await GET_ASYNC(`${req.params.urlCode.trim()}`)
+        // console.log(catchedUrldata)
+        if (catchedUrldata) {
+            console.log("I am in")
+            return res.status(302).redirect(JSON.parse(catchedUrldata))
+        }
+        //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    const url = await urlModel.findOne({ urlCode: req.params.urlCode.trim() })
-    if (url) {
-        console.log('I am out')
-        //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        await SET_ASYNC(`${url.urlCode}`, JSON.stringify(url.longUrl), 'EX', 30)
-        await SET_ASYNC(`${url.longUrl}`, JSON.stringify(url), 'EX', 30)
-        //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        return res.status(302).redirect(url.longUrl)
-    } else {
-        return res.status(400).send({ status: false, message: "No documnet found with this urlCode" });
+        const url = await urlModel.findOne({ urlCode: req.params.urlCode.trim() })
+        if (url) {
+            console.log('I am out')
+            //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            await SET_ASYNC(`${url.urlCode}`, JSON.stringify(url.longUrl), 'EX', 30)
+            await SET_ASYNC(`${url.longUrl}`, JSON.stringify(url), 'EX', 30)
+            //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            return res.status(302).redirect(url.longUrl)
+        } else {
+            return res.status(400).send({ status: false, message: "No documnet found with this urlCode" });
+        }
+    } catch (err) {
+        return res.status(500).send({ status: false, message: err })
     }
 }
 
