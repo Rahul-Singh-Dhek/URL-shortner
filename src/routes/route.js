@@ -7,7 +7,7 @@ router.post("/url/shorten", urlcontroller.shorturl);
 router.get("/:urlCode", urlcontroller.geturl);
 
 router.all("/*", function (req, res) {
-  return res.send({ status: false, message: "no route found" });
+  return res.status(404).send({ status: false, message: "Enter valid URL" });
 });
 
 module.exports = router;

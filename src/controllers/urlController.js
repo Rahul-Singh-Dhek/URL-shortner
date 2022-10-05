@@ -51,7 +51,7 @@ const shorturl = async function (req, res) {
 
         let url = await urlModel.findOne({ longUrl: longUrl }).select({ _id: 0, __v: 0 })
         if (url) {
-            await SET_ASYNC(`${url.longUrl}`, JSON.stringify(url), 'EX', 05)//stringify converts objects into string
+            await SET_ASYNC(`${url.longUrl}`, JSON.stringify(url), 'EX', 10)//stringify converts objects into string
             //Redis consider only string
             return res.status(200).send({ status: true, message: "ShortUrl is already created for this URL", data: url })
         }
@@ -83,7 +83,7 @@ const shorturl = async function (req, res) {
         let shortUrl = baseUrl + urlCode;
 
         let savedData = await urlModel.create({ urlCode: urlCode, longUrl: longUrl, shortUrl: shortUrl })
-        await SET_ASYNC(`${savedData.longUrl}`, JSON.stringify(savedData), 'EX', 05)//stringify converts objects into string
+        await SET_ASYNC(`${savedData.longUrl}`, JSON.stringify(savedData), 'EX', 10)//stringify converts objects into string
 
         return res.status(201).send({
             status: true, message: "ShortUrl Generated Successfully", data: {
@@ -103,22 +103,22 @@ const geturl = async function (req, res) {
         if (!shortId.isValid(req.params.urlCode.trim())) {
             return res.status(400).send({ status: false, message: "Please provide valid urlCode" })
         }
-        //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         let catchedUrldata = await GET_ASYNC(`${req.params.urlCode.trim()}`)
         // console.log(catchedUrldata)
         if (catchedUrldata) {
-            console.log("I am in")
+            // console.log("I am in")
             return res.status(302).redirect(JSON.parse(catchedUrldata))
         }
-        //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
         const url = await urlModel.findOne({ urlCode: req.params.urlCode.trim() })
         if (url) {
-            console.log('I am out')
-            //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            // console.log('I am out')
+            //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             await SET_ASYNC(`${url.urlCode}`, JSON.stringify(url.longUrl), 'EX', 30)
             await SET_ASYNC(`${url.longUrl}`, JSON.stringify(url), 'EX', 30)
-            //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             return res.status(302).redirect(url.longUrl)
         } else {
             return res.status(400).send({ status: false, message: "No documnet found with this urlCode" });
