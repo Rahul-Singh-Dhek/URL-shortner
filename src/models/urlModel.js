@@ -10,7 +10,6 @@ const urlSchema = new mongoose.Schema({
   },
   longUrl: {
     type: String,
-    lowercase: true,
     required: true
   },
 

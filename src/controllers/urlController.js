@@ -6,6 +6,7 @@ const urlModel = require('../models/urlModel')
 const redis = require('redis')
 const { promisify } = require("util");
 
+ 
 
 const redisClient = redis.createClient(
     11154,
@@ -34,7 +35,7 @@ const shorturl = async function (req, res) {
         if (typeof longUrl !== "string") {
             return res.status(400).send({ status: false, message: "longUrl must be in String" })
         }
-        longUrl = longUrl.trim().toLowerCase()
+        longUrl = longUrl.trim()
 
         let gau = longUrl.startsWith("http://") || longUrl.startsWith("https://") || longUrl.startsWith("ftp://")
         if (!gau) {
@@ -57,28 +58,17 @@ const shorturl = async function (req, res) {
         }
         //------------------------------------------------------->Axios--------------------------------------------------->
         let obj = {
-            method: "get",
+            method: 'get',
             url: longUrl
         }
-        //------------------------------------------------------->MY way of Axios--------------------------------------------------->
-        // let urlnotFound = false;
-        // await axios(obj).catch((err) => { urlnotFound = true });
-        // if (urlnotFound) {
-        //     return res.status(400).send({ status: false, message: "Please provide valid LongUrl(RDOP)" })
-        // }
-        //------------------------------------------------------->Other way of Axios--------------------------------------------------->
-        let urlFound = false;
-        await axios(obj)
-            .then((res) => {
-                if (res.status == 201 || res.status == 200) urlFound = true;
-            })
-            .catch((err) => { });
+        let urlFound;
+        await axios(obj).then(()=>urlFound=true).catch(() => { urlFound = false });
         if (!urlFound) {
             return res.status(400).send({ status: false, message: "Please provide valid LongUrl(RDOP)" })
         }
         //------------------------------------------------------->Axios Over--------------------------------------------------->
 
-        let urlCode = shortId.generate();
+        let urlCode = (shortId.generate()).toLowerCase();
         let baseUrl = "http://localhost:3000/"
         let shortUrl = baseUrl + urlCode;
 
@@ -94,7 +84,7 @@ const shorturl = async function (req, res) {
         })
     }
     catch (err) {
-        return res.status(500).send({ status: false, message: err })
+        return res.status(500).send({ status: false, message: err.message })
     }
 }
 
