@@ -64,7 +64,7 @@ const shorturl = async function (req, res) {
         let urlFound;
         await axios(obj).then(()=>urlFound=true).catch(() => { urlFound = false });
         if (!urlFound) {
-            return res.status(400).send({ status: false, message: "Please provide valid LongUrl(RDOP)" })
+            return res.status(400).send({ status: false, message: "Please provide valid LongUrl(Axios)" })
         }
         //------------------------------------------------------->Axios Over--------------------------------------------------->
 
@@ -73,7 +73,7 @@ const shorturl = async function (req, res) {
         let shortUrl = baseUrl + urlCode;
 
         let savedData = await urlModel.create({ urlCode: urlCode, longUrl: longUrl, shortUrl: shortUrl })
-        await SET_ASYNC(`${savedData.longUrl}`, JSON.stringify(savedData), 'EX', 10)//stringify converts objects into string
+        await SET_ASYNC(`${savedData.longUrl}`, JSON.stringify({ urlCode: savedData.urlCode, longUrl: savedData.longUrl, shortUrl: savedData.shortUrl }), 'EX', 10)//stringify converts objects into string
 
         return res.status(201).send({
             status: true, message: "ShortUrl Generated Successfully", data: {
