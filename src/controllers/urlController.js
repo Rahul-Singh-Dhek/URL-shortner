@@ -28,6 +28,9 @@ const GET_ASYNC = promisify(redisClient.GET).bind(redisClient);
 
 const shorturl = async function (req, res) {
     try {
+        if(Object.keys(req.body).length==0){
+            return res.status(400).send({ status: false, message: "Invalid request:Please provide longUrl in the Body" })
+        }
         let longUrl = req.body.longUrl
         if (!longUrl) {
             return res.status(400).send({ status: false, message: "Please provide longUrl" })
@@ -36,7 +39,9 @@ const shorturl = async function (req, res) {
             return res.status(400).send({ status: false, message: "longUrl must be in String" })
         }
         longUrl = longUrl.trim()
-
+        // if(!validURL.isUri(longUrl)){
+        //     return res.status(400).send({ status: false, message: "Please provide valid longUrl(isUri)" })
+        // }
         let gau = longUrl.startsWith("http://") || longUrl.startsWith("https://") || longUrl.startsWith("ftp://")
         if (!gau) {
             return res.status(400).send({ status: false, message: "Please provide valid LongUrl" })
@@ -53,7 +58,6 @@ const shorturl = async function (req, res) {
         let url = await urlModel.findOne({ longUrl: longUrl }).select({ _id: 0, __v: 0 })
         if (url) {
             await SET_ASYNC(`${url.longUrl}`, JSON.stringify(url), 'EX', 10)//stringify converts objects into string
-            //Redis consider only string
             return res.status(200).send({ status: true, message: "ShortUrl is already created for this URL", data: url })
         }
         //------------------------------------------------------->Axios--------------------------------------------------->
