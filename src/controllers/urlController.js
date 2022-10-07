@@ -39,6 +39,7 @@ const shorturl = async function (req, res) {
             return res.status(400).send({ status: false, message: "longUrl must be in String" })
         }
         longUrl = longUrl.trim()
+        // console.log(validURL.isUri(longUrl))
         // if(!validURL.isUri(longUrl)){
         //     return res.status(400).send({ status: false, message: "Please provide valid longUrl(isUri)" })
         // }
@@ -57,6 +58,7 @@ const shorturl = async function (req, res) {
 
         let url = await urlModel.findOne({ longUrl: longUrl }).select({ _id: 0, __v: 0 })
         if (url) {
+
             await SET_ASYNC(`${url.longUrl}`, JSON.stringify(url), 'EX', 10)//stringify converts objects into string
             return res.status(200).send({ status: true, message: "ShortUrl is already created for this URL", data: url })
         }
